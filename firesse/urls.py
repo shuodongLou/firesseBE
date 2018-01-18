@@ -22,7 +22,5 @@ from rest_framework.authtoken import views as authviews
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('users/', fireviews.UserList.as_view()),
-    path('users/<int:pk>', fireviews.UserDetail.as_view()),
-    path('api-token-auth/', authviews.obtain_auth_token),
+    url(r'^', include('fireserv.urls')),
 ]

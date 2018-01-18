@@ -1,24 +1,39 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from fireserv.models import Account
+from rest_framework.validators import UniqueValidator
 
 class UserSerializer(serializers.ModelSerializer):
-
+    username = serializers.CharField(required=True, validators=[UniqueValidator(queryset=User.objects.all())])
     class Meta:
         model = User
-        fields = ('id', 'username', 'account')
-
-
-class AccountSerializer(serializers.ModelSerializer):
-    id = serializers.ReadOnlyField(source='user.id')
-    class Meta:
-        model = Account
-        fields = ('id', 'phonenum' 'fire_code', 'address', 'birthday', 'points', 'skin_type', 'skin_notes')
+        fields = ('username', 'password')
 
     def create(self, validated_data):
-        return Account.objects.create(**validated_data)
+        user = User(username=validated_data['username'])
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
 
-    def update(self, validated_data):
+class AccountSerializer(serializers.ModelSerializer):
+
+    user = serializers.IntegerField(source='user.id')
+    phonenum = serializers.CharField(required=True, validators=[UniqueValidator(queryset=Account.objects.all())])
+
+    class Meta:
+        model = Account
+        fields = ('user', 'phonenum', 'fire_code', 'address', 'birthday', 'points', 'skin_type', 'skin_notes')
+
+    def create(self, validated_data):
+        print("validated_data:")
+        print(validated_data)
+        data = {}
+        data['user'] = User(id=validated_data['user']['id'])
+        data['phonenum'] = validated_data['phonenum']
+        print(data)
+        return Account.objects.create(**data)
+
+    def update(self, instance, validated_data):
         instance.phonenum = validated_data.get('phonenum', instance.phonenum)
         instance.fire_code = validated_data.get('fire_code', instance.fire_code)
         instance.address = validated_data.get('address', instance.address)
