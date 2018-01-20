@@ -10,6 +10,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('username', 'password')
 
     def create(self, validated_data):
+        print("debug - validated_data: \n", validated_data)
         user = User(username=validated_data['username'])
         user.set_password(validated_data['password'])
         user.save()
@@ -18,7 +19,7 @@ class UserSerializer(serializers.ModelSerializer):
 class AccountSerializer(serializers.ModelSerializer):
 
     user = serializers.IntegerField(source='user.id')
-    phonenum = serializers.CharField(required=True, validators=[UniqueValidator(queryset=Account.objects.all())])
+    phonenum = serializers.CharField(required=False, validators=[UniqueValidator(queryset=Account.objects.all())])
 
     class Meta:
         model = Account
@@ -29,7 +30,7 @@ class AccountSerializer(serializers.ModelSerializer):
         print(validated_data)
         data = {}
         data['user'] = User(id=validated_data['user']['id'])
-        data['phonenum'] = validated_data['phonenum']
+        #data['phonenum'] = validated_data['phonenum']
         print(data)
         return Account.objects.create(**data)
 

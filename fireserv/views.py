@@ -2,6 +2,7 @@ from django.shortcuts import render
 
 # Create your views here.
 from django.contrib.auth.models import User
+from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from rest_framework import generics
 from fireserv.serializers import UserSerializer, AccountSerializer
@@ -16,7 +17,6 @@ from rest_framework.parsers import JSONParser
 from django.http import HttpResponse, JsonResponse
 import string
 from random import *
-import json
 
 
 class UserList(generics.ListAPIView):
@@ -40,28 +40,21 @@ class AccountList(generics.ListCreateAPIView):
 @api_view(['POST'])
 def create_account(request):
     data = request.data
-    #Because the User model requires a unique username, we need to Generated
-    #a random username for now. (we save the user from doing this boring part)
-    min_char = 8
-    max_char = 12
-    allchar = string.ascii_letters + string.digits
-    random_username = "".join(choice(allchar) for x in range(randint(min_char, max_char)))
-    tempdata = {}
-    tempdata['username'] = random_username
-    tempdata['password'] = data['user']['password']
-    user_serializer = UserSerializer(data=tempdata)
+    print("debug - data: \n", data)
+    user_serializer = UserSerializer(data=data)
     #Once we got the username generated, proceed to create the user and GET
     #the user.id.
     if user_serializer.is_valid():
+        print("passed user validation")
         user_serializer.save()
         #now we have our new user created, go ahead to create related account
         account_data = {}
         account_data['user'] = user_serializer.instance.id
-        account_data['phonenum'] = data['phonenum']
+        #account_data['phonenum'] = data['phonenum']
         account_serializer = AccountSerializer(data=account_data)
         if account_serializer.is_valid():
             account_serializer.save()
-            return JsonResponse(account_serializer.data, status=201)
+            return Response(account_serializer.data, status=201)
         else:
             print(account_serializer.errors)
             return JsonResponse(account_serializer.errors, status=400)
