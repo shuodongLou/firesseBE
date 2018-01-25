@@ -19,23 +19,24 @@ class UserSerializer(serializers.ModelSerializer):
 class AccountSerializer(serializers.ModelSerializer):
 
     user = serializers.IntegerField(source='user.id')
-    phonenum = serializers.CharField(required=False, validators=[UniqueValidator(queryset=Account.objects.all())])
+    role = serializers.CharField(required=True)
 
     class Meta:
         model = Account
-        fields = ('user', 'phonenum', 'fire_code', 'address', 'birthday', 'points', 'skin_type', 'skin_notes')
+        fields = ('user', 'role', 'fire_code', 'address', 'birthday', 'points', 'skin_type', 'skin_notes')
 
     def create(self, validated_data):
         print("validated_data:")
         print(validated_data)
         data = {}
         data['user'] = User(id=validated_data['user']['id'])
-        #data['phonenum'] = validated_data['phonenum']
+        data['role'] = validated_data['role']
         print(data)
         return Account.objects.create(**data)
 
     def update(self, instance, validated_data):
-        instance.phonenum = validated_data.get('phonenum', instance.phonenum)
+        print("in serializer update()")
+        instance.role = validated_data.get('role', instance.role)
         instance.fire_code = validated_data.get('fire_code', instance.fire_code)
         instance.address = validated_data.get('address', instance.address)
         instance.birthday = validated_data.get('birthday', instance.birthday)

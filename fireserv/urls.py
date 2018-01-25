@@ -9,9 +9,9 @@ from rest_framework.authtoken import views as authviews
 urlpatterns = [
     path('users/', fireviews.UserList.as_view()),
     path('users/<int:pk>', fireviews.UserDetail.as_view()),
-    #path('accounts/', fireviews.AccountList.as_view()),
+    path('accounts/', fireviews.AccountList.as_view()),
     path('create_account/', fireviews.create_account),
     path('accounts/<int:pk>', fireviews.AccountDetail.as_view()),
-    path('api-token-auth/', authviews.obtain_auth_token),
-    path('protected_auth/', fireviews.protected_auth),
+    #path('api-token-auth/', authviews.obtain_auth_token),
+    path('custom-token-auth/', fireviews.CustomObtainToken.as_view()),
 ]

@@ -3,6 +3,7 @@ from django.shortcuts import render
 # Create your views here.
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.views import APIView
 from rest_framework import generics
 from fireserv.serializers import UserSerializer, AccountSerializer
@@ -15,8 +16,8 @@ from rest_framework import status
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 from django.http import HttpResponse, JsonResponse
+from rest_framework import permissions
 import string
-from random import *
 
 
 class UserList(generics.ListAPIView):
@@ -30,11 +31,6 @@ class UserDetail(generics.RetrieveAPIView):
 class AccountList(generics.ListCreateAPIView):
     queryset = Account.objects.all()
     serializer_class = AccountSerializer
-    def show_request(self):
-        print("HTTP method:")
-        print(self.request.method)
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
 
 @csrf_exempt
 @api_view(['POST'])
@@ -50,7 +46,7 @@ def create_account(request):
         #now we have our new user created, go ahead to create related account
         account_data = {}
         account_data['user'] = user_serializer.instance.id
-        #account_data['phonenum'] = data['phonenum']
+        account_data['role'] = data['role']
         account_serializer = AccountSerializer(data=account_data)
         if account_serializer.is_valid():
             account_serializer.save()
@@ -62,17 +58,19 @@ def create_account(request):
         print(user_serializer.errors)
         return JsonResponse(user_serializer.errors, status=400)
 
+class CustomObtainToken(ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        print('auth request body: ', request.body)
+        response = super(CustomObtainToken, self).post(request, *args, **kwargs)
+        token = Token.objects.get(key=response.data['token'])
+        print('token: ', token)
+        print('user id : ', token.user_id)
+        role = Account.objects.filter(user_id=token.user_id).values_list('role', flat=True)[0]
+        pk = Account.objects.filter(user_id=token.user_id).values_list('id', flat=True)[0]
+        return Response({'token': token.key, 'role': role, 'pk': pk})
 
 class AccountDetail(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
     queryset = Account.objects.all()
     serializer_class = AccountSerializer
-
-@csrf_exempt
-@api_view(['GET', 'POST', 'PUT'])
-def protected_auth(request):
-    print("in protected")
-    print(request.method)
-    if request.auth is not None:
-        print(request.auth)
-        return Response(status=status.HTTP_204_NO_CONTENT)
-    return Response(status=status.HTTP_400_BAD_REQUEST)

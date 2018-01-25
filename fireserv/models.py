@@ -15,7 +15,7 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 class Account(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     time_created = models.DateTimeField(auto_now_add=True)
-    phonenum = models.CharField(max_length=20)
+    role = models.CharField(max_length=20)
     fire_code = models.CharField(max_length=10, blank=True, default='')
     address = models.CharField(max_length=200, blank=True, default='')
     birthday = models.DateField(blank=True, null=True)
