@@ -5,6 +5,8 @@ from django.conf.urls import url, include
 from rest_framework import routers
 from fireserv import views as fireviews
 from rest_framework.authtoken import views as authviews
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('users/', fireviews.UserList.as_view()),
@@ -14,4 +16,8 @@ urlpatterns = [
     path('accounts/<int:pk>', fireviews.AccountDetail.as_view()),
     #path('api-token-auth/', authviews.obtain_auth_token),
     path('custom-token-auth/', fireviews.CustomObtainToken.as_view()),
+    path('storeimg/', fireviews.CreatePhoto.as_view()),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -6,8 +6,8 @@ from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.views import APIView
 from rest_framework import generics
-from fireserv.serializers import UserSerializer, AccountSerializer
-from fireserv.models import Account
+from fireserv.serializers import UserSerializer, AccountSerializer, PhotoSerializer
+from fireserv.models import Account, Photo
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -18,6 +18,7 @@ from rest_framework.parsers import JSONParser
 from django.http import HttpResponse, JsonResponse
 from rest_framework import permissions
 import string
+import os
 
 
 class UserList(generics.ListAPIView):
@@ -47,6 +48,7 @@ def create_account(request):
         account_data = {}
         account_data['user'] = user_serializer.instance.id
         account_data['role'] = data['role']
+        account_data['phone'] = data['phone']
         account_serializer = AccountSerializer(data=account_data)
         if account_serializer.is_valid():
             account_serializer.save()
@@ -74,3 +76,16 @@ class AccountDetail(generics.RetrieveUpdateDestroyAPIView):
 
     queryset = Account.objects.all()
     serializer_class = AccountSerializer
+
+class CreatePhoto(generics.CreateAPIView):
+    serializer_class = PhotoSerializer
+
+    def post(self, request):
+        #print('in post() of createphoto, req: ', request.data)
+        serializer = PhotoSerializer(data=request.data)
+        if serializer.is_valid():
+            print('photo serializer is VALID!...')
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        print('the following is data errors: ', serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
