@@ -6,8 +6,8 @@ from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.views import APIView
 from rest_framework import generics
-from fireserv.serializers import UserSerializer, AccountSerializer, PhotoSerializer
-from fireserv.models import Account, Photo
+from fireserv.serializers import UserSerializer, AccountSerializer, PhotoSerializer, InquirySerializer
+from fireserv.models import Account, Photo, Inquiry
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -69,7 +69,7 @@ class CustomObtainToken(ObtainAuthToken):
         print('user id : ', token.user_id)
         role = Account.objects.filter(user_id=token.user_id).values_list('role', flat=True)[0]
         pk = Account.objects.filter(user_id=token.user_id).values_list('id', flat=True)[0]
-        return Response({'token': token.key, 'role': role, 'pk': pk})
+        return Response({'token': token.key, 'role': role, 'pk': pk}, status=200)
 
 class AccountDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
@@ -78,10 +78,13 @@ class AccountDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AccountSerializer
 
 class CreatePhoto(generics.CreateAPIView):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    queryset = Photo.objects.all()
     serializer_class = PhotoSerializer
 
     def post(self, request):
-        #print('in post() of createphoto, req: ', request.data)
+        print('in post() of createphoto, req: ', request.data)
         serializer = PhotoSerializer(data=request.data)
         if serializer.is_valid():
             print('photo serializer is VALID!...')
@@ -89,3 +92,52 @@ class CreatePhoto(generics.CreateAPIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         print('the following is data errors: ', serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class PhotoList(generics.ListCreateAPIView):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    queryset = Photo.objects.all()
+    serializer_class = PhotoSerializer
+
+class PhotoListById(PhotoList):
+    def list(self, request, inq_id):
+        print('PhotoListById inq_id: ', inq_id)
+
+        photolist = list(Photo.objects.filter(inquiry_id=inq_id).values())
+        return Response(photolist, status=200)
+
+
+class InquiryList(generics.ListCreateAPIView):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    queryset = Inquiry.objects.all()
+    serializer_class = InquirySerializer
+
+    def post(self, request):
+        serializer = InquirySerializer(data=request.data)
+        if serializer.is_valid():
+            print('inquiry create request is VALID...')
+            instance = serializer.save()
+            return Response(instance.id, status=status.HTTP_201_CREATED)
+        print('the following is data errors: ', serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class InquiryListForUser(InquiryList):
+    def list(self, request, acc_id):
+        print("data: ", request.body)
+        print('acc_id: ', acc_id)
+
+        inquiries = list(Inquiry.objects.filter(account_id=acc_id).values())
+        return Response(inquiries, status=200)
+
+class InquiryListUnresolved(InquiryList):
+    def list(self, request):
+        inquiries = list(Inquiry.objects.filter(status=False).values())
+        return Response(inquiries, status=200)
+
+
+class InquiryDetail(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    queryset = Inquiry.objects.all()
+    serializer_class = InquirySerializer

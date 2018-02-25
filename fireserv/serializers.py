@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from fireserv.models import Account, Photo
+from fireserv.models import Account, Photo, Inquiry
 from rest_framework.validators import UniqueValidator
 from django.core.files.base import ContentFile
 import base64
@@ -102,19 +102,41 @@ class PhotoSerializer(serializers.ModelSerializer):
     photo = serializers.ListField(
         child = Base64ImageField(max_length=None, use_url=True)
     )
-    #photo = Base64ImageField(max_length=None, use_url=True)
+    inquiry_id = serializers.IntegerField(read_only=False)
 
     def create(self, validated_data):
         account = Account(id=validated_data['account']['id'])
-        photo = validated_data.pop('photo')
+        print('validated_data: ', validated_data)
+        photo = validated_data['photo']
+        print(validated_data)
         for item in photo:
             data = {}
-            #data['account'] = Account(id=validated_data['account']['id'])
             data['account'] = account
             data['photo'] = item
+            data['inquiry_id'] = validated_data['inquiry_id']
             res = Photo.objects.create(**data)
         return res
 
     class Meta:
         model = Photo
-        fields = ('account', 'photo', 'timestamp')
+        fields = ('account', 'photo', 'timestamp', 'inquiry_id')
+
+class InquirySerializer(serializers.ModelSerializer):
+
+    account = serializers.IntegerField(source='account.id', read_only=True)
+
+    def create(self, validated_data):
+        account = Account(id=validated_data['account']['id'])
+        data = {}
+        data['account'] = account
+        if 'note' in validated_data:
+            data['note'] = validated_data['note']
+        data['status'] = False
+        return Inquiry.objects.create(**data)
+
+    class Meta:
+        model = Inquiry
+        fields = ('account', 'timestamp', 'note', 'status', 'reply', 'subtypea1'
+                    'subtypea2', 'subtypea3', 'subtypeb1', 'subtypeb2', 'subtypeb3',
+                    'subtypec1', 'subtypec2', 'subtypec3', 'subtyped1', 'subtyped2',
+                    'subtyped3', 'subtypee1', 'subtypee2')

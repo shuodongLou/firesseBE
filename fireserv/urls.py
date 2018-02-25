@@ -17,6 +17,11 @@ urlpatterns = [
     #path('api-token-auth/', authviews.obtain_auth_token),
     path('custom-token-auth/', fireviews.CustomObtainToken.as_view()),
     path('storeimg/', fireviews.CreatePhoto.as_view()),
+    path('inquiries/', fireviews.InquiryList.as_view()),
+    path('inquiries/<int:pk>', fireviews.InquiryDetail.as_view()),
+    path('inquiriesforuser/<int:acc_id>', fireviews.InquiryListForUser.as_view()),
+    path('unresolvedinquiries/', fireviews.InquiryListUnresolved.as_view()),
+    path('getphotobyinquiryid/<int:inq_id>', fireviews.PhotoListById.as_view()),
 ]
 
 if settings.DEBUG:
