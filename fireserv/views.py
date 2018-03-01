@@ -30,6 +30,8 @@ class UserDetail(generics.RetrieveAPIView):
     serializer_class = UserSerializer
 
 class AccountList(generics.ListCreateAPIView):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
     queryset = Account.objects.all()
     serializer_class = AccountSerializer
 
@@ -49,6 +51,7 @@ def create_account(request):
         account_data['user'] = user_serializer.instance.id
         account_data['role'] = data['role']
         account_data['phone'] = data['phone']
+        account_data['username'] = data['phone']
         account_serializer = AccountSerializer(data=account_data)
         if account_serializer.is_valid():
             account_serializer.save()
@@ -84,7 +87,6 @@ class CreatePhoto(generics.CreateAPIView):
     serializer_class = PhotoSerializer
 
     def post(self, request):
-        print('in post() of createphoto, req: ', request.data)
         serializer = PhotoSerializer(data=request.data)
         if serializer.is_valid():
             print('photo serializer is VALID!...')
@@ -115,6 +117,7 @@ class InquiryList(generics.ListCreateAPIView):
 
     def post(self, request):
         serializer = InquirySerializer(data=request.data)
+        print ('request.data: ', request.data)
         if serializer.is_valid():
             print('inquiry create request is VALID...')
             instance = serializer.save()
@@ -141,3 +144,8 @@ class InquiryDetail(generics.RetrieveUpdateDestroyAPIView):
 
     queryset = Inquiry.objects.all()
     serializer_class = InquirySerializer
+
+class AccidByUser(AccountList):
+    def list(self, request, user_id):
+        acc_id = Account.objects.filter(user=User(id=user_id)).values_list('id', flat=True)[0]
+        return Response(acc_id, status=200)

@@ -22,6 +22,7 @@ urlpatterns = [
     path('inquiriesforuser/<int:acc_id>', fireviews.InquiryListForUser.as_view()),
     path('unresolvedinquiries/', fireviews.InquiryListUnresolved.as_view()),
     path('getphotobyinquiryid/<int:inq_id>', fireviews.PhotoListById.as_view()),
+    path('getaccidbyuser/<int:user_id>', fireviews.AccidByUser.as_view()),
 ]
 
 if settings.DEBUG:

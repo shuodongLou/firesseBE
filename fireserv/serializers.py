@@ -29,7 +29,7 @@ class AccountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Account
-        fields = ('user', 'role', 'fire_code', 'province', 'city', 'county',
+        fields = ('user', 'username', 'role', 'fire_code', 'province', 'city', 'county',
                 'address', 'phone', 'name', 'sex','birthday', 'points',
                 'skin_type', 'skin_notes')
 
@@ -40,6 +40,7 @@ class AccountSerializer(serializers.ModelSerializer):
         data['user'] = User(id=validated_data['user']['id'])
         data['role'] = validated_data['role']
         data['phone'] = validated_data['phone']
+        data['username'] = validated_data['phone']
         print(data)
         return Account.objects.create(**data)
 
@@ -123,9 +124,11 @@ class PhotoSerializer(serializers.ModelSerializer):
 
 class InquirySerializer(serializers.ModelSerializer):
 
-    account = serializers.IntegerField(source='account.id', read_only=True)
+    account = serializers.IntegerField(source='account.id')
 
     def create(self, validated_data):
+        print('validated_data is : ', validated_data)
+        print ('in create() - id: ', validated_data['account']['id'])
         account = Account(id=validated_data['account']['id'])
         data = {}
         data['account'] = account
@@ -134,9 +137,31 @@ class InquirySerializer(serializers.ModelSerializer):
         data['status'] = False
         return Inquiry.objects.create(**data)
 
+    def update(self, instance, validated_data):
+        print ('in update() validated_data: ', validated_data)
+        instance.note = validated_data.get('note', instance.note)
+        instance.status = validated_data.get('status', instance.status)
+        instance.reply = validated_data.get('reply', instance.reply)
+        instance.subtypea1 = validated_data.get('subtypea1', instance.subtypea1)
+        instance.subtypea2 = validated_data.get('subtypea2', instance.subtypea2)
+        instance.subtypea3 = validated_data.get('subtypea3', instance.subtypea3)
+        instance.subtypeb1 = validated_data.get('subtypea1', instance.subtypeb1)
+        instance.subtypeb2 = validated_data.get('subtypea2', instance.subtypeb2)
+        instance.subtypeb3 = validated_data.get('subtypea3', instance.subtypeb3)
+        instance.subtypec1 = validated_data.get('subtypea1', instance.subtypec1)
+        instance.subtypec2 = validated_data.get('subtypea2', instance.subtypec2)
+        instance.subtypec3 = validated_data.get('subtypea3', instance.subtypec3)
+        instance.subtyped1 = validated_data.get('subtypea1', instance.subtyped1)
+        instance.subtyped2 = validated_data.get('subtypea2', instance.subtyped2)
+        instance.subtyped3 = validated_data.get('subtypea3', instance.subtyped3)
+        instance.subtypee1 = validated_data.get('subtypea1', instance.subtypee1)
+        instance.subtypee2 = validated_data.get('subtypea2', instance.subtypee2)
+        instance.save()
+        return instance
+
     class Meta:
         model = Inquiry
-        fields = ('account', 'timestamp', 'note', 'status', 'reply', 'subtypea1'
+        fields = ('account', 'timestamp', 'note', 'status', 'reply', 'subtypea1',
                     'subtypea2', 'subtypea3', 'subtypeb1', 'subtypeb2', 'subtypeb3',
                     'subtypec1', 'subtypec2', 'subtypec3', 'subtyped1', 'subtyped2',
                     'subtyped3', 'subtypee1', 'subtypee2')
