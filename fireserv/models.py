@@ -41,6 +41,8 @@ class Photo(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     inquiry_id = models.PositiveIntegerField(default=0, editable=True)
 
+
+
 class Inquiry(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     account = models.ForeignKey(Account, related_name='inquiries', on_delete=models.CASCADE)
@@ -61,3 +63,16 @@ class Inquiry(models.Model):
     subtyped3 = models.PositiveIntegerField(default=0)
     subtypee1 = models.PositiveIntegerField(default=0)
     subtypee2 = models.PositiveIntegerField(default=0)
+
+class Product(models.Model):
+    name = models.CharField(max_length=200)
+    desc = models.TextField(blank=True, default='')
+    series = models.CharField(max_length=200, default='', blank=True)
+    status = models.CharField(max_length=20, default='', blank=True)
+    price = models.PositiveIntegerField(default=0)
+    inventory = models.PositiveIntegerField(default=100)
+    histsales = models.PositiveIntegerField(default=0)
+
+class ProductImage(models.Model):
+    product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='productimage/')

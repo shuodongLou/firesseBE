@@ -6,8 +6,8 @@ from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.views import APIView
 from rest_framework import generics
-from fireserv.serializers import UserSerializer, AccountSerializer, PhotoSerializer, InquirySerializer
-from fireserv.models import Account, Photo, Inquiry
+from fireserv.serializers import UserSerializer, AccountSerializer, PhotoSerializer, InquirySerializer, ProductSerializer, ProductImageSerializer
+from fireserv.models import Account, Photo, Inquiry, Product, ProductImage
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -149,3 +149,41 @@ class AccidByUser(AccountList):
     def list(self, request, user_id):
         acc_id = Account.objects.filter(user=User(id=user_id)).values_list('id', flat=True)[0]
         return Response(acc_id, status=200)
+
+class ProductList(generics.ListCreateAPIView):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+
+class ProductDetail(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+
+class ProductImageList(generics.ListCreateAPIView):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    queryset = ProductImage.objects.all()
+    serializer_class = ProductImageSerializer
+
+    def post(self, request):
+        serializer = ProductImageSerializer(data=request.data)
+        if serializer.is_valid():
+            print('product image serializer is VALID!...')
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        print('the following is data errors for product image: ', serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ProductImageDetail(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    queryset = ProductImage.objects.all()
+    serializer_class = ProductImageSerializer
+
+class ProductImageByProduct(ProductImageList):
+    def list(self, request, product_id):
+        imageList = ProductImage.objects.filter(product_id=product_id).values()
+        return Response(imageList, status=200)

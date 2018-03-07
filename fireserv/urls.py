@@ -23,6 +23,11 @@ urlpatterns = [
     path('unresolvedinquiries/', fireviews.InquiryListUnresolved.as_view()),
     path('getphotobyinquiryid/<int:inq_id>', fireviews.PhotoListById.as_view()),
     path('getaccidbyuser/<int:user_id>', fireviews.AccidByUser.as_view()),
+    path('products/', fireviews.ProductList.as_view()),
+    path('products/<int:pk>', fireviews.ProductDetail.as_view()),
+    path('productimages/', fireviews.ProductImageList.as_view()),
+    path('productimages/<int:product_id>', fireviews.ProductImageByProduct.as_view()),
+    path('productimagesops/<int:pk>', fireviews.ProductImageDetail.as_view()),
 ]
 
 if settings.DEBUG:

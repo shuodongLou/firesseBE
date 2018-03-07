@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from fireserv.models import Account, Photo, Inquiry
+from fireserv.models import Account, Photo, Inquiry, Product, ProductImage
 from rest_framework.validators import UniqueValidator
 from django.core.files.base import ContentFile
 import base64
@@ -165,3 +165,35 @@ class InquirySerializer(serializers.ModelSerializer):
                     'subtypea2', 'subtypea3', 'subtypeb1', 'subtypeb2', 'subtypeb3',
                     'subtypec1', 'subtypec2', 'subtypec3', 'subtyped1', 'subtyped2',
                     'subtyped3', 'subtypee1', 'subtypee2')
+
+class ProductSerializer(serializers.ModelSerializer):
+
+    def create(self, validated_data):
+        return Product.objects.create(**validated_data)
+
+    class Meta:
+        model = Product
+        fields = ('id', 'name', 'desc', 'series', 'status', 'price', 'inventory', 'histsales')
+
+class ProductImageSerializer(serializers.ModelSerializer):
+
+    product = serializers.IntegerField(source='product.id')
+    image = serializers.ListField(
+        child = Base64ImageField(max_length=None, use_url=True)
+    )
+
+    def create(self, validated_data):
+        product = Product(id=validated_data['product']['id'])
+        print('validated_data: ', validated_data)
+        image = validated_data['image']
+        print(validated_data)
+        for item in image:
+            data = {}
+            data['product'] = product
+            data['image'] = item
+            res = ProductImage.objects.create(**data)
+        return res
+
+    class Meta:
+        model = ProductImage
+        fields = ('product', 'image')
