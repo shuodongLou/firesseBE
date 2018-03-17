@@ -7,7 +7,8 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.views import APIView
 from rest_framework import generics
 from fireserv.serializers import UserSerializer, AccountSerializer, PhotoSerializer, InquirySerializer, ProductSerializer, ProductImageSerializer
-from fireserv.models import Account, Photo, Inquiry, Product, ProductImage
+from fireserv.serializers import AgentSerializer
+from fireserv.models import Account, Photo, Inquiry, Product, ProductImage, Agent
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -151,19 +152,19 @@ class AccidByUser(AccountList):
         return Response(acc_id, status=200)
 
 class ProductList(generics.ListCreateAPIView):
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    authentication_classes = []
 
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
 class ProductDetail(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    authentication_classes = []
 
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
 class ProductImageList(generics.ListCreateAPIView):
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    authentication_classes = []
 
     queryset = ProductImage.objects.all()
     serializer_class = ProductImageSerializer
@@ -178,7 +179,7 @@ class ProductImageList(generics.ListCreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ProductImageDetail(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    authentication_classes = []
 
     queryset = ProductImage.objects.all()
     serializer_class = ProductImageSerializer
@@ -187,3 +188,32 @@ class ProductImageByProduct(ProductImageList):
     def list(self, request, product_id):
         imageList = ProductImage.objects.filter(product_id=product_id).values()
         return Response(imageList, status=200)
+
+class AgentList(generics.ListCreateAPIView):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    queryset = Agent.objects.all()
+    serializer_class = AgentSerializer
+
+class AgentDetails(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    queryset = Agent.objects.all()
+    serializer_class = AgentSerializer
+
+class AgentListByAccount(AgentList):
+    def list(self, request, acct_id):
+        agentList = Agent.objects.filter(acct_id=acct_id).values()
+        return Response(agentList, status=200)
+
+@csrf_exempt
+@api_view(['POST'])
+def hasFirecode(request):
+    print('request: ', request)
+    print('fire_code: ', request.data)
+    code = list(Agent.objects.filter(fire_code=request.data).values())
+    print('code: ', code)
+    if (len(code) > 0):
+        return Response(True, status=200)
+    else:
+        return Response(False, status=400)

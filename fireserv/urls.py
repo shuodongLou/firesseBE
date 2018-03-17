@@ -28,6 +28,10 @@ urlpatterns = [
     path('productimages/', fireviews.ProductImageList.as_view()),
     path('productimages/<int:product_id>', fireviews.ProductImageByProduct.as_view()),
     path('productimagesops/<int:pk>', fireviews.ProductImageDetail.as_view()),
+    path('agents/', fireviews.AgentList.as_view()),
+    path('agents/<int:pk>', fireviews.AgentDetails.as_view()),
+    path('agentsbyaccount/<int:acct_id>', fireviews.AgentListByAccount.as_view()),
+    path('hasfirecode/', fireviews.hasFirecode),
 ]
 
 if settings.DEBUG:

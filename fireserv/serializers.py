@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from fireserv.models import Account, Photo, Inquiry, Product, ProductImage
+from fireserv.models import Account, Photo, Inquiry, Product, ProductImage, Agent
 from rest_framework.validators import UniqueValidator
 from django.core.files.base import ContentFile
 import base64
@@ -173,7 +173,9 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ('id', 'name', 'desc', 'series', 'status', 'price', 'inventory', 'histsales')
+        fields = ('id', 'name', 'name_e', 'desc', 'series', 'status', 'price',
+                  'inventory', 'histsales', 'volume', 'effects', 'ingredients',
+                  'usage', 'notes')
 
 class ProductImageSerializer(serializers.ModelSerializer):
 
@@ -197,3 +199,12 @@ class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage
         fields = ('product', 'image')
+
+class AgentSerializer(serializers.ModelSerializer):
+    fire_code = serializers.CharField(required=True, validators=[UniqueValidator(queryset=Agent.objects.all())])
+
+    class Meta:
+        model = Agent
+        fields = ('id', 'acct_id', 'level', 'stars', 'commission_rate', 'fire_code',
+                  'fire_points', 't_commission', 'y_commission', 'm_commission', 'status',
+                  't_sales', 'y_sales', 'm_sales', 't_bonus', 'y_bonus', 'm_bonus')
