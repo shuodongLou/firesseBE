@@ -7,8 +7,8 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.views import APIView
 from rest_framework import generics
 from fireserv.serializers import UserSerializer, AccountSerializer, PhotoSerializer, InquirySerializer, ProductSerializer, ProductImageSerializer
-from fireserv.serializers import AgentSerializer
-from fireserv.models import Account, Photo, Inquiry, Product, ProductImage, Agent
+from fireserv.serializers import AgentSerializer, OrderSerializer, ArticleSerializer, OrderProductsSerializer
+from fireserv.models import Account, Photo, Inquiry, Product, ProductImage, Agent, Order, Article, OrderProducts
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -214,6 +214,52 @@ def hasFirecode(request):
     code = list(Agent.objects.filter(fire_code=request.data).values())
     print('code: ', code)
     if (len(code) > 0):
-        return Response(True, status=200)
+        return Response(code[0], status=200)
     else:
-        return Response(False, status=400)
+        return Response('cannot find matched fire code', status=400)
+
+class OrderList(generics.ListCreateAPIView):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+
+class OrderDetails(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+
+class OrderProductsList(generics.ListCreateAPIView):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    queryset = OrderProducts.objects.all()
+    serializer_class = OrderProductsSerializer
+
+class OrderProductsDetails(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    queryset = OrderProducts.objects.all()
+    serializer_class = OrderProductsSerializer
+
+class OrderListByAccount(OrderList):
+    def list(self, request, acct_id):
+        orderList = Order.objects.filter(acct_id=acct_id).values()
+        return Response(orderList, status=200)
+
+class OrderProductsListByOrder(OrderProductsList):
+    def list(self, request, order_id):
+        resultList = OrderProducts.objects.filter(order=Order(id=order_id)).values()
+        return Response(resultList, status=200)
+
+class ArticleList(generics.ListCreateAPIView):
+    authentication_classes = []
+
+    queryset = Article.objects.all()
+    serializer_class = ArticleSerializer
+
+class ArticleDetails(generics.RetrieveUpdateDestroyAPIView):
+    authentication_classes = []
+
+    queryset = Article.objects.all()
+    serializer_class = ArticleSerializer

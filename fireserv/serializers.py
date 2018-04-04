@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from fireserv.models import Account, Photo, Inquiry, Product, ProductImage, Agent
+from fireserv.models import Account, Photo, Inquiry, Product, ProductImage, Agent, Order, Article, OrderProducts
 from rest_framework.validators import UniqueValidator
 from django.core.files.base import ContentFile
 import base64
@@ -208,3 +208,42 @@ class AgentSerializer(serializers.ModelSerializer):
         fields = ('id', 'acct_id', 'level', 'stars', 'commission_rate', 'fire_code',
                   'fire_points', 't_commission', 'y_commission', 'm_commission', 'status',
                   't_sales', 'y_sales', 'm_sales', 't_bonus', 'y_bonus', 'm_bonus')
+
+class OrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ('id', 'acct_id', 'time_created', 'time_delivered', 'time_resolved',
+        'product_total', 'delivery_fee', 'final_payment', 'num_of_products', 'status',
+        'fire_code', 'cus_name', 'cus_phone', 'cus_address', 'order_id')
+
+class OrderProductsSerializer(serializers.ModelSerializer):
+
+    order = serializers.IntegerField(source='order.id')
+    product = serializers.ListField(
+        child = serializers.CharField(max_length=100)
+    )
+
+    def create(self, validated_data):
+        order = Order(id=validated_data['order']['id'])
+
+        products = validated_data['product']
+        for product in products:
+            data = {
+                'order': order,
+                'product': product
+            }
+            res = OrderProducts.objects.create(**data)
+        return res
+
+
+    class Meta:
+        model = OrderProducts
+        fields = ('order', 'product')
+
+class ArticleSerializer(serializers.ModelSerializer):
+
+    cover = Base64ImageField(max_length=None, use_url=True, required=False)
+
+    class Meta:
+        model = Article
+        fields = ('id', 'time_written', 'title', 'blurb', 'author', 'content', 'cover')

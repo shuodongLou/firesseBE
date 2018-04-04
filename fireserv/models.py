@@ -103,16 +103,28 @@ class Agent(models.Model):
 
 class Order(models.Model):
     acct_id = models.IntegerField(default=-1)
-    order_id = models.CharField(max_length=20)
+    order_id = models.CharField(max_length=30)
     time_created = models.DateTimeField(auto_now_add=True)
-    time_delivered = models.DateTimeField(blank=True)
-    time_resolved = models.DateTimeField(blank=True)
+    time_delivered = models.DateTimeField(blank=True, null=True)
+    time_resolved = models.DateTimeField(blank=True, null=True)
     product_total = models.PositiveIntegerField(default=0)
     delivery_fee = models.PositiveIntegerField(default=0)
     final_payment = models.PositiveIntegerField(default=0)
     num_of_products = models.PositiveIntegerField(default=0)
-    status = models.CharField(max_length=10, default='PLACED')
-    fire_code = models.CharField(max_length=10, blank=False, default='000000')
+    status = models.CharField(max_length=10, default='已下单')
+    fire_code = models.CharField(max_length=10, blank=True, default='')
     cus_name = models.CharField(max_length=20, blank=True, default='')
     cus_phone = models.CharField(max_length=20, blank=True, default='')
     cus_address = models.CharField(max_length=200, blank=True, default='')
+
+class OrderProducts(models.Model):
+    order = models.ForeignKey(Order, related_name='products', on_delete=models.CASCADE)
+    product = models.CharField(max_length=100)
+
+class Article(models.Model):
+    time_written = models.DateTimeField(auto_now_add=True)
+    title = models.CharField(max_length=200)
+    author = models.CharField(max_length=20, blank=True, default='')
+    blurb = models.CharField(max_length=1000, blank=True, default='')
+    content = models.TextField(blank=True, default='')
+    cover = models.ImageField(upload_to='articlecovers/', blank=True, null=True)

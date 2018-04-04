@@ -32,6 +32,13 @@ urlpatterns = [
     path('agents/<int:pk>', fireviews.AgentDetails.as_view()),
     path('agentsbyaccount/<int:acct_id>', fireviews.AgentListByAccount.as_view()),
     path('hasfirecode/', fireviews.hasFirecode),
+    path('orders/', fireviews.OrderList.as_view()),
+    path('orders/<int:pk>', fireviews.OrderDetails.as_view()),
+    path('ordersbyaccount/<int:acct_id>', fireviews.OrderListByAccount.as_view()),
+    path('orderproducts/', fireviews.OrderProductsList.as_view()),
+    path('orderproducts/<int:order_id>', fireviews.OrderProductsListByOrder.as_view()),
+    path('articles/', fireviews.ArticleList.as_view()),
+    path('articles/<int:pk>', fireviews.ArticleDetails.as_view()),
 ]
 
 if settings.DEBUG:
