@@ -6,6 +6,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.views import APIView
 from rest_framework import generics
+from rest_framework.decorators import authentication_classes, permission_classes
 from fireserv.serializers import UserSerializer, AccountSerializer, PhotoSerializer, InquirySerializer, ProductSerializer, ProductImageSerializer
 from fireserv.serializers import AgentSerializer, OrderSerializer, ArticleSerializer, OrderProductsSerializer
 from fireserv.models import Account, Photo, Inquiry, Product, ProductImage, Agent, Order, Article, OrderProducts
@@ -18,6 +19,10 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 from django.http import HttpResponse, JsonResponse
 from rest_framework import permissions
+from django.db.models import Sum
+from django.utils import timezone
+from datetime import datetime
+import pytz
 import string
 import os
 
@@ -46,6 +51,7 @@ def create_account(request):
     #the user.id.
     if user_serializer.is_valid():
         print("passed user validation")
+        print('data after validation: ', data)
         user_serializer.save()
         #now we have our new user created, go ahead to create related account
         account_data = {}
@@ -53,6 +59,8 @@ def create_account(request):
         account_data['role'] = data['role']
         account_data['phone'] = data['phone']
         account_data['username'] = data['phone']
+        account_data['rec_code'] = data['code']
+        account_data['fire_code'] = data['f_code']
         account_serializer = AccountSerializer(data=account_data)
         if account_serializer.is_valid():
             account_serializer.save()
@@ -147,6 +155,7 @@ class InquiryDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = InquirySerializer
 
 class AccidByUser(AccountList):
+    authentication_classes = []
     def list(self, request, user_id):
         acc_id = Account.objects.filter(user=User(id=user_id)).values_list('id', flat=True)[0]
         return Response(acc_id, status=200)
@@ -190,7 +199,7 @@ class ProductImageByProduct(ProductImageList):
         return Response(imageList, status=200)
 
 class AgentList(generics.ListCreateAPIView):
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    authentication_classes = []
 
     queryset = Agent.objects.all()
     serializer_class = AgentSerializer
@@ -207,7 +216,9 @@ class AgentListByAccount(AgentList):
         return Response(agentList, status=200)
 
 @csrf_exempt
-@api_view(['POST'])
+@api_view(['GET', 'POST'])
+@permission_classes([])
+@authentication_classes([])
 def hasFirecode(request):
     print('request: ', request)
     print('fire_code: ', request.data)
@@ -251,6 +262,22 @@ class OrderProductsListByOrder(OrderProductsList):
     def list(self, request, order_id):
         resultList = OrderProducts.objects.filter(order=Order(id=order_id)).values()
         return Response(resultList, status=200)
+
+class RewardsByCode(OrderList):
+    def post(self, request):
+        now = timezone.now()
+        year = now.year
+        month = now.month
+        day = now.day
+        print('now: ', timezone.now(), year, month, day)
+        m_start_time = datetime(year, month, 1, 0, 0, 0)
+        m_end_time = datetime(year, month, 31, 23, 59, 59)
+        print('start_time: ', m_start_time)
+        print('end_time: ', m_end_time)
+
+        rewards = Order.objects.filter(fire_code=request.data, time_created__gte=m_start_time, time_created__lte=m_end_time).aggregate(Sum('final_payment'))
+        print('Rewards result: ', rewards)
+        return Response(rewards, status=200)
 
 class ArticleList(generics.ListCreateAPIView):
     authentication_classes = []

@@ -39,6 +39,7 @@ urlpatterns = [
     path('orderproducts/<int:order_id>', fireviews.OrderProductsListByOrder.as_view()),
     path('articles/', fireviews.ArticleList.as_view()),
     path('articles/<int:pk>', fireviews.ArticleDetails.as_view()),
+    path('rewards/', fireviews.RewardsByCode.as_view()),
 ]
 
 if settings.DEBUG:

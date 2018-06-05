@@ -18,6 +18,7 @@ class Account(models.Model):
     time_created = models.DateTimeField(auto_now_add=True)
     role = models.CharField(max_length=20)
     fire_code = models.CharField(max_length=10, blank=True, default='')
+    rec_code = models.CharField(max_length=10, blank=True, default='')
     level = models.PositiveIntegerField(default=0)
     province = models.CharField(max_length=15, blank=True, default='')
     city = models.CharField(max_length=15, blank=True, default='')

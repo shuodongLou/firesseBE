@@ -29,8 +29,8 @@ class AccountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Account
-        fields = ('user', 'username', 'role', 'fire_code', 'province', 'city', 'county',
-                'address', 'phone', 'name', 'sex','birthday', 'points',
+        fields = ('user', 'username', 'role', 'fire_code', 'rec_code', 'province', 'city',
+                'county', 'address', 'phone', 'name', 'sex','birthday', 'points',
                 'skin_type', 'skin_notes')
 
     def create(self, validated_data):
@@ -41,6 +41,8 @@ class AccountSerializer(serializers.ModelSerializer):
         data['role'] = validated_data['role']
         data['phone'] = validated_data['phone']
         data['username'] = validated_data['phone']
+        data['rec_code'] = validated_data['rec_code']
+        data['fire_code'] = validated_data['fire_code']
         print(data)
         return Account.objects.create(**data)
 
