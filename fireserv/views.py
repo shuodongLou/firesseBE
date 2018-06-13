@@ -4,6 +4,7 @@ from django.shortcuts import render
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
+from django.contrib.auth import login
 from rest_framework.views import APIView
 from rest_framework import generics
 from rest_framework.decorators import authentication_classes, permission_classes
@@ -83,6 +84,30 @@ class CustomObtainToken(ObtainAuthToken):
         pk = Account.objects.filter(user_id=token.user_id).values_list('id', flat=True)[0]
         return Response({'token': token.key, 'role': role, 'pk': pk}, status=200)
 
+@csrf_exempt
+@api_view(['GET'])
+def logout_user(request):
+    print('user logged in: ', request.user)
+    print('auth_token b: ', request.user.auth_token)
+    request.user.auth_token.delete()
+    return Response('user logged out off server successfully', status=200)
+
+@csrf_exempt
+@api_view(['POST'])
+def change_password(request):
+
+    print('it is a POST request: ', request.data)
+    #get user first
+    users = User.objects.filter(username=request.data['username'])
+    if (len(users) == 0):
+        return Response('user not found!', status=400)
+    user = users[0]
+    print('the requested user is: ', user)
+    user.set_password(request.data['password'])
+    user.save()
+    return Response('password changed successfully', status=200)
+
+
 class AccountDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
@@ -136,7 +161,7 @@ class InquiryList(generics.ListCreateAPIView):
 
 class InquiryListForUser(InquiryList):
     def list(self, request, acc_id):
-        print("data: ", request.body)
+        print("user: ", request.user)
         print('acc_id: ', acc_id)
 
         inquiries = list(Inquiry.objects.filter(account_id=acc_id).values())
