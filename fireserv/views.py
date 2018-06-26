@@ -46,7 +46,7 @@ class AccountList(generics.ListCreateAPIView):
 @api_view(['POST'])
 def create_account(request):
     data = request.data
-    print("debug - data: \n", data)
+    #print("debug - data: \n", data)
     user_serializer = UserSerializer(data=data)
     #Once we got the username generated, proceed to create the user and GET
     #the user.id.
@@ -75,11 +75,11 @@ def create_account(request):
 
 class CustomObtainToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
-        print('auth request body: ', request.body)
+        #print('auth request body: ', request.body)
         response = super(CustomObtainToken, self).post(request, *args, **kwargs)
         token = Token.objects.get(key=response.data['token'])
-        print('token: ', token)
-        print('user id : ', token.user_id)
+        #print('token: ', token)
+        #print('user id : ', token.user_id)
         role = Account.objects.filter(user_id=token.user_id).values_list('role', flat=True)[0]
         pk = Account.objects.filter(user_id=token.user_id).values_list('id', flat=True)[0]
         return Response({'token': token.key, 'role': role, 'pk': pk}, status=200)
@@ -87,8 +87,8 @@ class CustomObtainToken(ObtainAuthToken):
 @csrf_exempt
 @api_view(['GET'])
 def logout_user(request):
-    print('user logged in: ', request.user)
-    print('auth_token b: ', request.user.auth_token)
+    #print('user logged in: ', request.user)
+    #print('auth_token b: ', request.user.auth_token)
     request.user.auth_token.delete()
     return Response('user logged out off server successfully', status=200)
 
@@ -96,13 +96,13 @@ def logout_user(request):
 @api_view(['POST'])
 def change_password(request):
 
-    print('it is a POST request: ', request.data)
+    #print('it is a POST request: ', request.data)
     #get user first
     users = User.objects.filter(username=request.data['username'])
     if (len(users) == 0):
         return Response('user not found!', status=400)
     user = users[0]
-    print('the requested user is: ', user)
+    #print('the requested user is: ', user)
     user.set_password(request.data['password'])
     user.save()
     return Response('password changed successfully', status=200)
@@ -151,7 +151,7 @@ class InquiryList(generics.ListCreateAPIView):
 
     def post(self, request):
         serializer = InquirySerializer(data=request.data)
-        print ('request.data: ', request.data)
+        #print ('request.data: ', request.data)
         if serializer.is_valid():
             print('inquiry create request is VALID...')
             instance = serializer.save()
@@ -161,8 +161,8 @@ class InquiryList(generics.ListCreateAPIView):
 
 class InquiryListForUser(InquiryList):
     def list(self, request, acc_id):
-        print("user: ", request.user)
-        print('acc_id: ', acc_id)
+        #print("user: ", request.user)
+        #print('acc_id: ', acc_id)
 
         inquiries = list(Inquiry.objects.filter(account_id=acc_id).values())
         return Response(inquiries, status=200)
@@ -245,10 +245,10 @@ class AgentListByAccount(AgentList):
 @permission_classes([])
 @authentication_classes([])
 def hasFirecode(request):
-    print('request: ', request)
-    print('fire_code: ', request.data)
+    #print('request: ', request)
+    #print('fire_code: ', request.data)
     code = list(Agent.objects.filter(fire_code=request.data).values())
-    print('code: ', code)
+    #print('code: ', code)
     if (len(code) > 0):
         return Response(code[0], status=200)
     else:
@@ -294,14 +294,14 @@ class RewardsByCode(OrderList):
         year = now.year
         month = now.month
         day = now.day
-        print('now: ', timezone.now(), year, month, day)
+        #print('now: ', timezone.now(), year, month, day)
         m_start_time = datetime(year, month, 1, 0, 0, 0)
         m_end_time = datetime(year, month, 31, 23, 59, 59)
-        print('start_time: ', m_start_time)
-        print('end_time: ', m_end_time)
+        #print('start_time: ', m_start_time)
+        #print('end_time: ', m_end_time)
 
         rewards = Order.objects.filter(fire_code=request.data, time_created__gte=m_start_time, time_created__lte=m_end_time).aggregate(Sum('final_payment'))
-        print('Rewards result: ', rewards)
+        #print('Rewards result: ', rewards)
         return Response(rewards, status=200)
 
 class ArticleList(generics.ListCreateAPIView):
