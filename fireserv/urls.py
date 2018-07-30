@@ -42,6 +42,7 @@ urlpatterns = [
     path('api/articles/', fireviews.ArticleList.as_view()),
     path('api/articles/<int:pk>', fireviews.ArticleDetails.as_view()),
     path('api/rewards/', fireviews.RewardsByCode.as_view()),
+    path('api/wechatpay/', fireviews.wechatPay),
 ]
 
 if settings.DEBUG:

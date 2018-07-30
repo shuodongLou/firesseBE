@@ -26,6 +26,7 @@ from datetime import datetime
 import pytz
 import string
 import os
+import requests
 
 
 class UserList(generics.ListAPIView):
@@ -253,6 +254,19 @@ def hasFirecode(request):
         return Response(code[0], status=200)
     else:
         return Response('cannot find matched fire code', status=400)
+
+@csrf_exempt
+@api_view(['POST'])
+def wechatPay(request):
+    xml = request.data['xml']
+    url = request.data['url']
+    #print('request data: ', request.data)
+    headers = {'Content-Type': 'text/xml: charset:"UTF-8"'}
+    response = requests.post(url, data=xml.encode('utf-8'), headers=headers).text
+    if ('SUCCESS' in response):
+        return Response(response, status=200)
+    else:
+        return Response('WechatPay urnified api call failed!', status=500)
 
 class OrderList(generics.ListCreateAPIView):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
