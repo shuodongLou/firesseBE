@@ -23,6 +23,7 @@ from rest_framework import permissions
 from django.db.models import Sum
 from django.utils import timezone
 from datetime import datetime
+from requests import get
 import pytz
 import string
 import os
@@ -30,7 +31,6 @@ import requests
 import hashlib
 import socket
 import random
-import ipgetter
 
 
 class UserList(generics.ListAPIView):
@@ -291,8 +291,8 @@ def wechatPay(request):
     print('nonce_str:', nonce_str)
 
     #get external ip cus_address
-    ex_ip = ipgetter.myip()
-    print('ip:', ex_ip)
+    ex_ip = get('https://api.ipify.org').text
+    print('ip2: ', ex_ip)
 
     #Constructing long string to be signed on
     lstr = 'appid=' + xml_con['appid'] + '&'
