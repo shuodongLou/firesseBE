@@ -27,6 +27,10 @@ import pytz
 import string
 import os
 import requests
+import hashlib
+import socket
+import random
+import ipgetter
 
 
 class UserList(generics.ListAPIView):
@@ -255,14 +259,84 @@ def hasFirecode(request):
     else:
         return Response('cannot find matched fire code', status=400)
 
+#Generate nounce_str randomly with ASCII letters and digits
+def randomGen(size):
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=size))
+
+
 @csrf_exempt
 @api_view(['POST'])
 def wechatPay(request):
-    xml = request.data['xml']
+    xml_con = request.data['xml_con']
     url = request.data['url']
-    #print('request data: ', request.data)
+    print('xml received: ', xml_con)
+    xml2 = ""
+    xml2 += "<xml>"
+    xml2 += "<appid><![CDATA[wxb401889e868d284c]]></appid>"
+    xml2 += "<body><![CDATA[CHELCI燃典护肤-滋养面膜]]></body>"
+    xml2 += "<mch_id><![CDATA[1509865351]]></mch_id>"
+    xml2 += "<nonce_str><![CDATA[5K8264ILTKCH16CQ2502SI8ZNMTM67VS]]></nonce_str>"
+    xml2 += "<notify_url><![CDATA[https://www.chelci.cn]]></notify_url>"
+    xml2 += '<scene_info><![CDATA[{"h5_info": {"type":"Wap","wap_url": "https://www.chelci.cn","wap_name": "燃典护肤"}}]]></scene_info>'
+    xml2 += "<out_trade_no><![CDATA[20180722151946]]></out_trade_no>"
+    xml2 += "<spbill_create_ip><![CDATA[115.171.21.229]]></spbill_create_ip>"
+    xml2 += "<total_fee><![CDATA[2]]></total_fee>"
+    xml2 += "<trade_type><![CDATA[MWEB]]></trade_type>"
+    xml2 += "<sign>857FB4B57B52BAD06EADF53F2CAE0DD1</sign>"
+    xml2 += "</xml>"
+    #print('xml generated: ', xml2)
+
+    #Generate random value for nounce_str
+    nonce_str = randomGen(32)
+    print('nonce_str:', nonce_str)
+
+    #get external ip cus_address
+    ex_ip = ipgetter.myip()
+    print('ip:', ex_ip)
+
+    #Constructing long string to be signed on
+    lstr = 'appid=' + xml_con['appid'] + '&'
+    lstr += 'body=' + xml_con['body'] + '&'
+    lstr += 'mch_id=' + xml_con['mch_id'] + '&'
+    lstr += 'nonce_str=' + nonce_str + '&'
+    lstr += 'notify_url=' + xml_con['notify_url'] + '&'
+    lstr += 'out_trade_no=' + xml_con['out_trade_no'] + '&'
+    lstr += 'scene_info=' + xml_con['scene_info'] + '&'
+    lstr += 'spbill_create_ip=' + ex_ip + '&'
+    lstr += 'total_fee=2&'
+    lstr += 'trade_type=' + xml_con['trade_type'] + '&'
+    lstr += 'key=' + xml_con['key']
+
+    print(lstr)
+    sign = hashlib.md5(lstr.encode('utf-8')).hexdigest().upper()
+    print(sign)
+
+
+
+    #Constructing XML format
+    fmt1 = "<"
+    fmt2 = "><![CDATA["
+    fmt3 = "]]></"
+    fmt4 = ">"
+    xml = '<xml>'
+    xml += fmt1 + 'appid' + fmt2 + xml_con['appid'] + fmt3 + 'appid' + fmt4
+    xml += fmt1 + 'body' + fmt2 + xml_con['body'] + fmt3 + 'body' + fmt4
+    xml += fmt1 + 'mch_id' + fmt2 + xml_con['mch_id'] + fmt3 + 'mch_id' + fmt4
+    xml += fmt1 + 'nonce_str' + fmt2 + nonce_str + fmt3 + 'nonce_str' + fmt4
+    xml += fmt1 + 'notify_url' + fmt2 + xml_con['notify_url'] + fmt3 + 'notify_url' + fmt4
+    xml += fmt1 + 'out_trade_no' + fmt2 + xml_con['out_trade_no'] + fmt3 + 'out_trade_no' + fmt4
+    xml += fmt1 + 'scene_info' + fmt2 + xml_con['scene_info'] + fmt3 + 'scene_info' + fmt4
+    xml += fmt1 + 'spbill_create_ip' + fmt2 + ex_ip + fmt3 + 'spbill_create_ip' + fmt4
+    xml += fmt1 + 'total_fee' + fmt2 + '2' + fmt3 + 'total_fee' + fmt4
+    xml += fmt1 + 'trade_type' + fmt2 + xml_con['trade_type'] + fmt3 + 'trade_type' + fmt4
+    xml += fmt1 + 'sign' + fmt2 + sign + fmt3 + 'sign' + fmt4
+    xml += '</xml>'
+
+    print(xml)
+
     headers = {'Content-Type': 'text/xml: charset:"UTF-8"'}
     response = requests.post(url, data=xml.encode('utf-8'), headers=headers).text
+    print('response: ', u''.join(response))
     if ('SUCCESS' in response):
         return Response(response, status=200)
     else:
