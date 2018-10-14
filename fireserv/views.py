@@ -261,7 +261,8 @@ def hasFirecode(request):
 
 #Generate nounce_str randomly with ASCII letters and digits
 def randomGen(size):
-    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=size))
+    chars = string.ascii_uppercase + string.digits
+    return ''.join(random.choice(chars) for _ in range(size))
 
 
 @csrf_exempt
