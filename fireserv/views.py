@@ -292,8 +292,8 @@ def wechatPay(request):
     print('nonce_str:', nonce_str)
 
     #get external ip cus_address
-    ex_ip = get('https://api.ipify.org').text
-    print('ip2: ', ex_ip)
+    #ex_ip = get('https://api.ipify.org').text
+    #print('ip2: ', ex_ip)
 
     #Constructing long string to be signed on
     lstr = 'appid=' + xml_con['appid'] + '&'
@@ -303,7 +303,7 @@ def wechatPay(request):
     lstr += 'notify_url=' + xml_con['notify_url'] + '&'
     lstr += 'out_trade_no=' + xml_con['out_trade_no'] + '&'
     lstr += 'scene_info=' + xml_con['scene_info'] + '&'
-    lstr += 'spbill_create_ip=' + ex_ip + '&'
+    lstr += 'spbill_create_ip=' + xml_con['spbill_create_ip'] + '&'
     lstr += 'total_fee=2&'
     lstr += 'trade_type=' + xml_con['trade_type'] + '&'
     lstr += 'key=' + xml_con['key']
@@ -327,7 +327,7 @@ def wechatPay(request):
     xml += fmt1 + 'notify_url' + fmt2 + xml_con['notify_url'] + fmt3 + 'notify_url' + fmt4
     xml += fmt1 + 'out_trade_no' + fmt2 + xml_con['out_trade_no'] + fmt3 + 'out_trade_no' + fmt4
     xml += fmt1 + 'scene_info' + fmt2 + xml_con['scene_info'] + fmt3 + 'scene_info' + fmt4
-    xml += fmt1 + 'spbill_create_ip' + fmt2 + ex_ip + fmt3 + 'spbill_create_ip' + fmt4
+    xml += fmt1 + 'spbill_create_ip' + fmt2 + xml_con['spbill_create_ip'] + fmt3 + 'spbill_create_ip' + fmt4
     xml += fmt1 + 'total_fee' + fmt2 + '2' + fmt3 + 'total_fee' + fmt4
     xml += fmt1 + 'trade_type' + fmt2 + xml_con['trade_type'] + fmt3 + 'trade_type' + fmt4
     xml += fmt1 + 'sign' + fmt2 + sign + fmt3 + 'sign' + fmt4
